@@ -1,0 +1,53 @@
+{
+    "seasons":
+    {
+        "summer":
+        {
+            "start": "3-15",
+            "peak": "7-15"
+        },
+
+        "winter":
+        {
+            "start": "9-15",
+            "peak": "1-15"
+        }
+    },
+
+    "seasonal_filters":
+    {
+        "summer":
+        {
+            "high":
+            {
+                "level": 8,
+                "start": "08:00",
+                "end": "10:00"
+            },
+
+            "low":
+            {
+                "level": 4,
+                "start": "10:00",
+                "end": "12:00"
+            }
+        },
+
+        "winter":
+        {
+            "high":
+            {
+                "level": 4,
+                "start": "08:00",
+                "end": "09:30"
+            },
+
+            "low":
+            {
+                "level": 1,
+                "start": "09:30",
+                "end": "11:00"
+            }
+        }
+    }
+}
