@@ -15,8 +15,17 @@ def get_defaults():
     defaults_file = open(DEFAULT_FILE_NAME)
     return json.load(defaults_file)
 
+
 def get_month_day(date_string):
     return date_string.split('-')
+
+
+def get_next_program():
+    '''
+    Returns the next program as StartEvent by querying the database
+    Currently returns the event with the next start time (could change to reschedule the current event)
+    '''
+    pass
 
 
 def initialize_sql():
