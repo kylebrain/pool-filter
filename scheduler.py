@@ -27,7 +27,7 @@ class Scheduler():
         if next_event is not None:
             self._schedule_event(next_event)
 
-        threading.Thread(target=run_schedule, args=(self._scheduler, )).start()
+        threading.Thread(target=run_schedule, args=(self._scheduler, ), daemon=True).start()
 
 
     def acquire(self):

@@ -27,7 +27,7 @@ def get_next_program():
     Returns the next program as StartEvent by querying the database
     Currently returns the event with the next start time (could change to reschedule the current event)
     '''
-    return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=3), 4)
+    return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=15), 4)
 
 
 def initialize_sql():

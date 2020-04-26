@@ -1,16 +1,23 @@
-from flask import Flask
+from flask import Flask, jsonify
 import database
 from scheduler import Scheduler
+import time
+from datetime import datetime
 
 
 def start_up():
+    global scheduler
+
     database.initialize_sql()
     scheduler = Scheduler(app)
 
     app.run()
 
-app = Flask(__name__)
+    while(True):
+        pass
 
+app = Flask(__name__)
+scheduler = None
 
 @app.route('/')
 def index():
@@ -50,7 +57,9 @@ def put_override():
 
 @app.route('/override/stop', methods = ['PUT'])
 def put_stop_override():
-    pass
+    # Cannot modify scheduler queue because schedule.run locks the object
+    scheduler.override_current_event(Scheduler.StopEvent(datetime.now()))
+    return jsonify({"message": "Stopped current program!"})
 
 
 @app.route('/program/delete', methods = ['DELETE'])
