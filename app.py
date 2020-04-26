@@ -3,21 +3,23 @@ import database
 from scheduler import Scheduler
 import time
 from datetime import datetime
+import os
 
 
-def start_up():
-    global scheduler
-
-    database.initialize_sql()
-    scheduler = Scheduler(app)
-
-    app.run()
-
-    while(True):
-        pass
-
-app = Flask(__name__)
 scheduler = None
+
+
+def create_app():
+
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        global scheduler
+
+        database.initialize_sql()
+        scheduler = Scheduler()
+
+    return Flask(__name__)
+
+app = create_app()
 
 @app.route('/')
 def index():
@@ -37,7 +39,7 @@ def get_all_programs():
 
 @app.route('/seasons/', methods = ['GET'])
 def get_season_dates():
-    pass
+    return 'Beebo'
 
 
 @app.route('/program/add', methods = ['POST'])
@@ -57,8 +59,8 @@ def put_override():
 
 @app.route('/override/stop', methods = ['PUT'])
 def put_stop_override():
-    # Cannot modify scheduler queue because schedule.run locks the object
-    scheduler.override_current_event(Scheduler.StopEvent(datetime.now()))
+    with scheduler:
+        scheduler.override_current_event(Scheduler.StopEvent(datetime.now()))
     return jsonify({"message": "Stopped current program!"})
 
 
@@ -68,4 +70,4 @@ def delete_program():
 
 
 if __name__ == "__main__":
-    start_up()
+    app.run()
