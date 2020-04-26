@@ -1,5 +1,7 @@
 import sqlite3
 import json
+import scheduler
+from datetime import datetime, timedelta
 
 DB_FILE_NAME = "database.db"
 DEFAULT_FILE_NAME = "defaults.json"
@@ -25,7 +27,7 @@ def get_next_program():
     Returns the next program as StartEvent by querying the database
     Currently returns the event with the next start time (could change to reschedule the current event)
     '''
-    pass
+    return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=3), 4)
 
 
 def initialize_sql():

@@ -5,7 +5,7 @@ from scheduler import Scheduler
 
 def start_up():
     database.initialize_sql()
-    scheduler = Scheduler()
+    scheduler = Scheduler(app)
 
     app.run()
 
