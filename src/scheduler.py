@@ -1,7 +1,6 @@
 import abc
 import threading
 import sched
-import database
 import firmware
 from datetime import datetime
 import time
@@ -9,7 +8,8 @@ import time
 
 class Scheduler():
 
-    def __init__(self):
+    def __init__(self, database):
+        self.database = database
         self._lock = threading.Lock()
         self._current_event = None
         self._next_event = None
@@ -64,7 +64,7 @@ class Scheduler():
         '''
         REQUIRES LOCK
         '''
-        next_event = database.get_next_program()
+        next_event = self.database.get_next_program()
         if next_event is not None:
             self._next_event = None
             self._schedule_event(next_event)
@@ -120,7 +120,7 @@ class Scheduler():
             '''
             super().invoke(scheduler)
             firmware.set_speed(0)
-            next_event = database.get_next_program()
+            next_event = scheduler.database.get_next_program()
             if next_event is not None:
                 scheduler._schedule_event(next_event)
 

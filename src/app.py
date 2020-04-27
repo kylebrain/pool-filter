@@ -1,12 +1,14 @@
-from flask import Flask, jsonify
-import database
+from flask import Flask, jsonify, request
+from database import Database
 from scheduler import Scheduler
 import time
 from datetime import datetime
 import os
+import consts
 
 
 scheduler = None
+database = None
 
 
 def create_app():
@@ -15,9 +17,10 @@ def create_app():
 
     if app.config["ENV"] == "production" or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         global scheduler
+        global database
 
-        database.initialize(app.config["ENV"])
-        scheduler = Scheduler()
+        database = Database(app.config["ENV"])
+        scheduler = Scheduler(database)
 
     return app
 
@@ -48,7 +51,28 @@ def get_season_dates():
 
 @app.route('/program/add', methods = ['POST'])
 def post_new_program():
-    pass
+    speed = request.args.get(consts.SPEED)
+    start = request.args.get(consts.START)
+    summer_duration = request.args.get(consts.SUMMER_DURATION)
+    winter_duration = request.args.get(consts.WINTER_DURATION)
+
+    if speed is None or start is None or summer_duration is None or winter_duration is None:
+        error_response = {
+            consts.SPEED : speed is None,
+            consts.START : start is None,
+            consts.SUMMER_DURATION : summer_duration is None,
+            consts.WINTER_DURATION : winter_duration is None,
+        }
+        return jsonify({"message": "Insufficient information provided to create new program", "parameter": error_response}), 400
+
+    # TODO: Check for correct formatting here
+
+    try:
+        database.add_program(speed, start, summer_duration, winter_duration)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+    return jsonify({"message": "Successfully added new program"})
 
 
 @app.route('/program/update', methods = ['PUT'])
