@@ -43,7 +43,7 @@ def get_all_programs():
 
 @app.route('/seasons/', methods = ['GET'])
 def get_season_dates():
-    return 'Beebo'
+    pass
 
 
 @app.route('/program/add', methods = ['POST'])
