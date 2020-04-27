@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timedelta
 import os
 import consts
+import sqlite3
 
 
 scheduler = None
@@ -76,8 +77,8 @@ def post_new_program():
 
     try:
         database.add_program(speed, start, summer_duration, winter_duration)
-    except Exception as e:
-        return jsonify({"message": "SQLITE " + str(e)}), 500
+    except sqlite3.IntegrityError:
+        return jsonify({"message": "Start times must be unique"}), 400
 
     return jsonify({"message": "Successfully added new program"})
 
@@ -118,7 +119,14 @@ def put_override():
 
 @app.route('/program/delete', methods = ['DELETE'])
 def delete_program():
-    pass
+    program_id = request.args.get(consts.ID)
+
+    if program_id is None:
+        return jsonify({"message": "Did not provide id of program to delete"}), 400
+
+    if not database.delete_program(int(program_id)):
+        return jsonify({"message": "Passed id was not valid"}), 400
+    return jsonify({"message": "Sucessfully deleted program"})
 
 
 if __name__ == "__main__":

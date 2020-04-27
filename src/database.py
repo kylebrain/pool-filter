@@ -31,7 +31,7 @@ class Database():
         conn.execute('''CREATE TABLE IF NOT EXISTS programs (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             speed int NOT NULL,
-                            start time NOT NULL,
+                            start time UNIQUE NOT NULL,
                             summer_duration time NOT NULL,
                             winter_duration time NOT NULL
                         )''')
@@ -75,6 +75,10 @@ class Database():
         Returns the next program as StartEvent by querying the database
         Currently returns the event with the next start time (could change to reschedule the current event)
         '''
+        # Query database for next event
+
+        # Interpolate between summer and winter duration
+
         return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=15), 4)
 
 
@@ -110,3 +114,15 @@ class Database():
 
             for program in programs
         ]
+
+    
+    def delete_program(self, program_id):
+        conn = sqlite3.connect(self.DB_PATH)
+        cur = conn.cursor()
+        cur.execute('''DELETE FROM programs WHERE id = (?)''', (program_id, ))
+        if cur.rowcount == 0:
+            return False
+        conn.commit()
+        conn.close()
+
+        return True
