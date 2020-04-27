@@ -36,7 +36,11 @@ def index():
 
 @app.route('/program/now', methods = ['GET'])
 def get_current_program():
-    pass
+    try:
+        with scheduler:
+            return jsonify(scheduler.get_current_event())
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @app.route('/program/all', methods = ['GET'])

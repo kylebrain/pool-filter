@@ -4,6 +4,7 @@ import sched
 import firmware
 from datetime import datetime
 import time
+import consts
 
 
 class Scheduler():
@@ -49,9 +50,9 @@ class Scheduler():
 
     def override_current_event(self, event):
         '''
+        [REQUIRES LOCK]
         Cancels the current next event
         Invokes the passed event
-        REQUIRES LOCK
         '''
 
         if self._next_event is not None:
@@ -62,18 +63,46 @@ class Scheduler():
 
     def update_next_event(self):
         '''
-        REQUIRES LOCK
+        [REQUIRES LOCK]
         '''
         next_event = self.database.get_next_program()
         if next_event is not None:
             self._next_event = None
             self._schedule_event(next_event)
 
+    def get_current_event(self):
+        '''
+        [REQUIRES LOCK]
+        start - current event event_time
+        Start Event end - start + duration
+        Stop Event end - next event start
+        '''
+
+        speed = -1
+        start = ""
+        end = ""
+
+        if self._current_event is not None:
+            start = self._current_event.event_time.strftime("%H:%M:%S")
+
+        if isinstance(self._current_event, Scheduler.StartEvent):
+            end = (self._current_event.event_time + self._current_event.duration).strftime("%H:%M:%S")
+            speed = self._current_event.speed
+        elif (isinstance(self._current_event, Scheduler.StopEvent) or self._current_event is None) and self._next_event is not None:
+            end = self._next_event.event_time.strftime("%H:%M:%S")
+            speed = 0
+
+        return {
+            consts.SPEED: speed,
+            consts.START: start,
+            consts.END: end
+        }
+
 
     def _schedule_event(self, event):
         '''
+        [REQUIRES LOCK]
         Schedules the passed event
-        REQUIRES LOCK
         '''
 
         if not isinstance(event, Scheduler.ProgramEvent):

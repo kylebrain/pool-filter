@@ -3,6 +3,7 @@ SUMMER = "summer"
 WINTER = "winter"
 START = "start"
 PEAK = "peak"
+END = "end"
 
 ID = "id"
 SPEED = "speed"
