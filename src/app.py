@@ -41,7 +41,10 @@ def get_current_program():
 
 @app.route('/program/all', methods = ['GET'])
 def get_all_programs():
-    pass
+    try:
+        return jsonify(database.get_all_programs())
+    except Exception as e:
+        return jsonify({"message": "SQLITE " + str(e)}), 500
 
 
 @app.route('/seasons/', methods = ['GET'])
@@ -70,7 +73,7 @@ def post_new_program():
     try:
         database.add_program(speed, start, summer_duration, winter_duration)
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"message": "SQLITE " + str(e)}), 500
 
     return jsonify({"message": "Successfully added new program"})
 

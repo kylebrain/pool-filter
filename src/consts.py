@@ -4,6 +4,7 @@ WINTER = "winter"
 START = "start"
 PEAK = "peak"
 
+ID = "id"
 SPEED = "speed"
 START = "start"
 SUMMER_DURATION = "summer_duration"

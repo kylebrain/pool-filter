@@ -18,6 +18,8 @@ class Database():
         print("Initalizing database %s!" % (self.DB_PATH, ))
         conn = sqlite3.connect(self.DB_PATH)
 
+        # TODO: const the table creation
+
         conn.execute('''CREATE TABLE IF NOT EXISTS seasons (
                             season text PRIMARY KEY,
                             start_month int NOT NULL,
@@ -29,7 +31,7 @@ class Database():
         conn.execute('''CREATE TABLE IF NOT EXISTS programs (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             speed int NOT NULL,
-                            start_time time NOT NULL,
+                            start time NOT NULL,
                             summer_duration time NOT NULL,
                             winter_duration time NOT NULL
                         )''')
@@ -78,6 +80,9 @@ class Database():
 
     def add_program(self, speed, start, summer_duration, winter_duration):
         conn = sqlite3.connect(self.DB_PATH)
+
+        # TODO: Don't allow duplicate entries
+
         conn.execute('''INSERT INTO programs VALUES (NULL, ?, ?, ?, ?)''',
                        (speed,
                         start,
@@ -85,3 +90,23 @@ class Database():
                         winter_duration))
         conn.commit()
         conn.close()
+
+
+    def get_all_programs(self):
+        conn = sqlite3.connect(self.DB_PATH)
+        cur = conn.cursor()
+        cur.execute('''SELECT * FROM programs ORDER BY start''')
+        programs = cur.fetchall()
+        conn.close()
+
+        return [
+            {
+                consts.ID : program[0],
+                consts.SPEED : program[1],
+                consts.START : program[2],
+                consts.SUMMER_DURATION : program[3],
+                consts.WINTER_DURATION : program[4]
+            }
+
+            for program in programs
+        ]
