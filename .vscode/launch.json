@@ -9,8 +9,16 @@
             "name": "Flask App",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/app.py",
-            "console": "integratedTerminal"
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "src/app.py",
+                "FLASK_ENV": "development",
+            },
+            "console": "integratedTerminal",
+
+            "args": [
+                "run",
+            ]
         }
     ]
 }

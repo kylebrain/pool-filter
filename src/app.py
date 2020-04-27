@@ -80,6 +80,9 @@ def post_new_program():
     except sqlite3.IntegrityError:
         return jsonify({"message": "Start times must be unique"}), 400
 
+    with scheduler:
+        scheduler.update_next_event()
+
     return jsonify({"message": "Successfully added new program"})
 
 
@@ -126,6 +129,9 @@ def delete_program():
 
     if not database.delete_program(int(program_id)):
         return jsonify({"message": "Passed id was not valid"}), 400
+
+    with scheduler:
+        scheduler.update_next_event()
     return jsonify({"message": "Sucessfully deleted program"})
 
 

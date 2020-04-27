@@ -1,4 +1,4 @@
-
+from datetime import datetime
 
 def set_speed(speed):
-    print("Current Speed: %d" % (speed, ))
+    print("%s - Current Speed: %d" % (datetime.now(), speed))

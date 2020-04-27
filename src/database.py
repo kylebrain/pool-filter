@@ -4,6 +4,7 @@ import scheduler
 import os
 import consts
 from datetime import datetime, timedelta
+import time
 
 DB_FOLDER_NAME = "database/"
 PROD_NAME = "database.db"
@@ -75,17 +76,46 @@ class Database():
         Returns the next program as StartEvent by querying the database
         Currently returns the event with the next start time (could change to reschedule the current event)
         '''
-        # Query database for next event
+        programs = self.get_all_programs()
+        next_program = None
+        next_program_timedelta = None
+        next_program_start = None
 
-        # Interpolate between summer and winter duration
+        now = datetime.now()
 
-        return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=15), 4)
+        for program in programs:
+            program_start_time = datetime.strptime(program[consts.START], "%H:%M:%S")
+
+            program_start = datetime.combine(now.date(), program_start_time.time())
+
+            if program_start_time.time() < now.time():
+                program_start += timedelta(days=1)
+
+            program_timedelta = program_start - now
+
+            if next_program is None or next_program_timedelta > program_timedelta:
+                next_program = program
+                next_program_timedelta = program_timedelta
+                next_program_start = program_start
+
+        return next_program, next_program_start
+
+
+    def get_next_event(self):
+        # TODO: Interpolate between summer and winter duration
+        next_program, program_start = self.get_next_program()
+        if next_program is None:
+            return None
+
+        duration = datetime.strptime(next_program[consts.SUMMER_DURATION], "%H:%M:%S")
+        duration_delta = timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
+        return scheduler.Scheduler.StartEvent(program_start, duration_delta, int(next_program[consts.SPEED]))
 
 
     def add_program(self, speed, start, summer_duration, winter_duration):
         conn = sqlite3.connect(self.DB_PATH)
 
-        # TODO: Don't allow duplicate entries
+        # TODO: Prevent overlapping events
 
         conn.execute('''INSERT INTO programs VALUES (NULL, ?, ?, ?, ?)''',
                        (speed,

@@ -65,7 +65,7 @@ class Scheduler():
         '''
         [REQUIRES LOCK]
         '''
-        next_event = self.database.get_next_program()
+        next_event = self.database.get_next_event()
         if next_event is not None:
             self._next_event = None
             self._schedule_event(next_event)
@@ -78,7 +78,7 @@ class Scheduler():
         Stop Event end - next event start
         '''
 
-        speed = -1
+        speed = 0
         start = ""
         end = ""
 
@@ -90,7 +90,6 @@ class Scheduler():
             speed = self._current_event.speed
         elif (isinstance(self._current_event, Scheduler.StopEvent) or self._current_event is None) and self._next_event is not None:
             end = self._next_event.event_time.strftime("%H:%M:%S")
-            speed = 0
 
         return {
             consts.SPEED: speed,
@@ -149,7 +148,7 @@ class Scheduler():
             '''
             super().invoke(scheduler)
             firmware.set_speed(0)
-            next_event = scheduler.database.get_next_program()
+            next_event = scheduler.database.get_next_event()
             if next_event is not None:
                 scheduler._schedule_event(next_event)
 
