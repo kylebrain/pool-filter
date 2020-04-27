@@ -11,15 +11,19 @@ scheduler = None
 
 def create_app():
 
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    app = Flask(__name__)
+
+    if app.config["ENV"] == "production" or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         global scheduler
 
-        database.initialize_sql()
+        database.initialize(app.config["ENV"])
         scheduler = Scheduler()
 
-    return Flask(__name__)
+    return app
+
 
 app = create_app()
+
 
 @app.route('/')
 def index():

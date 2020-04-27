@@ -1,9 +1,12 @@
 import sqlite3
 import json
 import scheduler
+import os
 from datetime import datetime, timedelta
 
-DB_FILE_NAME = "database.db"
+DB_FOLDER_NAME = "database/"
+PROD_NAME = "database.db"
+TEST_NAME = "test_database.db"
 DEFAULT_FILE_NAME = "defaults.json"
 
 SEASONS = "seasons"
@@ -14,7 +17,7 @@ PEAK = "peak"
 
 
 def get_defaults():
-    defaults_file = open(DEFAULT_FILE_NAME)
+    defaults_file = open(os.path.join(DB_FOLDER_NAME, DEFAULT_FILE_NAME))
     return json.load(defaults_file)
 
 
@@ -30,8 +33,17 @@ def get_next_program():
     return scheduler.Scheduler.StartEvent(datetime.now() + timedelta(seconds=5), timedelta(seconds=15), 4)
 
 
-def initialize_sql():
-    conn = sqlite3.connect(DB_FILE_NAME)
+def initialize(database_type):
+
+    database_file_name = ""
+    if database_type == "production":
+        database_file_name = PROD_NAME
+    else:
+        database_file_name = TEST_NAME
+
+    print("Initalizing database %s!" % (database_file_name, ))
+    db_path = os.path.join(DB_FOLDER_NAME, database_file_name)
+    conn = sqlite3.connect(db_path)
 
     conn.execute('''CREATE TABLE IF NOT EXISTS seasons (
                         season text PRIMARY KEY,
