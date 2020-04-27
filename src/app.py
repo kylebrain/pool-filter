@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from database import Database
 from scheduler import Scheduler
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import consts
 
@@ -89,14 +89,31 @@ def put_update_program():
 
 @app.route('/override', methods = ['PUT'])
 def put_override():
-    pass
 
+    speed = request.args.get(consts.SPEED)
+    duration = request.args.get(consts.DURATION)
 
-@app.route('/override/stop', methods = ['PUT'])
-def put_stop_override():
-    with scheduler:
-        scheduler.override_current_event(Scheduler.StopEvent(datetime.now()))
-    return jsonify({"message": "Stopped current program!"})
+    if speed is None:
+        return jsonify({"message": "Speed not provided to override"}), 400
+
+    speed = int(speed)
+    if speed != 0 and duration is None:
+        return jsonify({"message": "Duration not provided to overrride when trying to turn on filter"}), 400
+
+    try:
+
+        with scheduler:
+            if speed != 0:
+                time = datetime.strptime(duration, "%H:%M:%S")
+                delta = timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
+                scheduler.override_current_event(Scheduler.StartEvent(datetime.now(), delta, int(speed)))
+            else:
+                scheduler.override_current_event(Scheduler.StopEvent(datetime.now()))
+
+    except Exception as e:
+        return jsonify({"message": "Failed to override current event: " + str(e)}), 500
+
+    return jsonify({"message": "Overwrote current program"})
 
 
 @app.route('/program/delete', methods = ['DELETE'])
