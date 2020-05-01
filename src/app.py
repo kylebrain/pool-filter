@@ -88,7 +88,27 @@ def post_new_program():
 
 @app.route('/program/update', methods = ['PUT'])
 def put_update_program():
-    pass
+    program_id = request.args.get(consts.ID)
+
+    if program_id is None:
+        return jsonify({"message": "Did not provide id of program to update"}), 400
+
+    speed = request.args.get(consts.SPEED)
+    start = request.args.get(consts.START)
+    summer_duration = request.args.get(consts.SUMMER_DURATION)
+    winter_duration = request.args.get(consts.WINTER_DURATION)
+
+    # TODO: Check for correct formatting here
+
+    if speed is None and start is None and summer_duration is None and winter_duration is None:
+        return jsonify({"message": "Nothing provided to update the given program"}), 400
+
+    if not database.update_program(int(program_id), speed, start, summer_duration, winter_duration):
+        return jsonify({"message": "Passed id was not valid"}), 400
+
+    with scheduler:
+        scheduler.update_next_event()
+    return jsonify({"message": "Sucessfully updated program"})
 
 
 @app.route('/override', methods = ['PUT'])

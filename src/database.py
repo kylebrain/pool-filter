@@ -150,12 +150,63 @@ class Database():
         conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
         cur.execute('''DELETE FROM programs WHERE id = (?)''', (program_id, ))
-        if cur.rowcount == 0:
-            return False
+        delete_count = cur.rowcount
         conn.commit()
         conn.close()
 
+        if delete_count == 0:
+            return False
+
         return True
+
+    def update_program(self, program_id, speed=None, start=None, summer_duration=None, winter_duration=None):
+        '''
+        At least one value must be updated
+        '''
+
+        if speed is None and start is None and summer_duration is None and winter_duration is None:
+            raise ValueError("Database update_program must be passed some value to update")
+
+        update_string = "UPDATE programs SET "
+        update_arguments = []
+
+        if speed is not None:
+            update_string += consts.SPEED + " = ?, "
+            update_arguments.append(speed)
+
+        if start is not None:
+            update_string += consts.START + " = ?, "
+            update_arguments.append(start)
+
+        if summer_duration is not None:
+            update_string += consts.SUMMER_DURATION + " = ?, "
+            update_arguments.append(summer_duration)
+
+        if winter_duration is not None:
+            update_string += consts.WINTER_DURATION + " = ?, "
+            update_arguments.append(winter_duration)
+
+        # Remove final ", "
+        update_string = update_string[0:-2]
+
+        update_string += " WHERE id = ?"
+        update_arguments.append(program_id)
+
+        conn = sqlite3.connect(self.DB_PATH)
+        cur = conn.cursor()
+
+        print(update_string)
+        cur.execute(update_string, update_arguments)
+
+        update_count = cur.rowcount
+        conn.commit()
+        conn.close()
+
+        if update_count == 0:
+            return False
+
+        return True
+
 
     def get_season_dates(self):
         conn = sqlite3.connect(self.DB_PATH)
@@ -169,5 +220,7 @@ class Database():
             season_dict[consts.START] = str(season[1]) + "-" + str(season[2])
             season_dict[consts.PEAK] = str(season[3]) + "-" + str(season[4])
             seasons[season[0]] = season_dict
+
+        conn.close()
 
         return seasons
