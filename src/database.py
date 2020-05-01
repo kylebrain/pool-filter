@@ -19,23 +19,19 @@ class Database():
         print("Initalizing database %s!" % (self.DB_PATH, ))
         conn = sqlite3.connect(self.DB_PATH)
 
-        # TODO: const the table creation
+        conn.execute("CREATE TABLE IF NOT EXISTS seasons ("
+                            + consts.SEASON + " text PRIMARY KEY,"
+                            + consts.START_MONTH + " int NOT NULL,"
+                            + consts.START_DAY + " int NOT NULL,"
+                            + consts.PEAK_MONTH + " int NOT NULL,"
+                            + consts.PEAK_DAY + " int NOT NULL)")
 
-        conn.execute('''CREATE TABLE IF NOT EXISTS seasons (
-                            season text PRIMARY KEY,
-                            start_month int NOT NULL,
-                            start_day int NOT NULL,
-                            peak_month int NOT NULL,
-                            peak_day int NOT NULL
-                        )''')
-
-        conn.execute('''CREATE TABLE IF NOT EXISTS programs (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            speed int NOT NULL,
-                            start time UNIQUE NOT NULL,
-                            summer_duration time NOT NULL,
-                            winter_duration time NOT NULL
-                        )''')
+        conn.execute("CREATE TABLE IF NOT EXISTS programs ("
+                            + consts.ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            + consts.SPEED + " int NOT NULL,"
+                            + consts.START + " time UNIQUE NOT NULL,"
+                            + consts.SUMMER_DURATION + " time NOT NULL,"
+                            + consts.WINTER_DURATION + " time NOT NULL)")
 
         defaults = Database.get_defaults()
 
@@ -152,7 +148,7 @@ class Database():
     def delete_program(self, program_id):
         conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
-        cur.execute('''DELETE FROM programs WHERE id = (?)''', (program_id, ))
+        cur.execute("DELETE FROM programs WHERE " + consts.ID + " = ?", (program_id, ))
         delete_count = cur.rowcount
         conn.commit()
         conn.close()
@@ -192,7 +188,7 @@ class Database():
         # Remove final ", "
         update_string = update_string[0:-2]
 
-        update_string += " WHERE id = ?"
+        update_string += " WHERE " + consts.ID + " = ?"
         update_arguments.append(program_id)
 
         conn = sqlite3.connect(self.DB_PATH)
@@ -248,7 +244,7 @@ class Database():
         # Remove final ", "
         update_string = update_string[0:-2]
 
-        update_string += " WHERE season = ?"
+        update_string += " WHERE " + consts.SEASON + " = ?"
         update_arguments.append(season)
 
         conn = sqlite3.connect(self.DB_PATH)

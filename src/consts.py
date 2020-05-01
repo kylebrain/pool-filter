@@ -1,4 +1,5 @@
 SEASONS = "seasons"
+SEASON = "season"
 SUMMER = "summer"
 WINTER = "winter"
 START = "start"
