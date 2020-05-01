@@ -156,3 +156,18 @@ class Database():
         conn.close()
 
         return True
+
+    def get_season_dates(self):
+        conn = sqlite3.connect(self.DB_PATH)
+        cur = conn.cursor()
+        cur.execute('''SELECT * FROM seasons''')
+
+        seasons = {}
+
+        for season in cur.fetchall():
+            season_dict = {}
+            season_dict[consts.START] = str(season[1]) + "-" + str(season[2])
+            season_dict[consts.PEAK] = str(season[3]) + "-" + str(season[4])
+            seasons[season[0]] = season_dict
+
+        return seasons

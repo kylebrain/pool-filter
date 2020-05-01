@@ -54,7 +54,7 @@ def get_all_programs():
 
 @app.route('/seasons/', methods = ['GET'])
 def get_season_dates():
-    pass
+    return jsonify(database.get_season_dates())
 
 
 @app.route('/program/add', methods = ['POST'])
