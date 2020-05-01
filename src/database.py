@@ -52,6 +52,7 @@ class Database():
         conn.commit()
         conn.close()
 
+
     def _get_db_path(self, database_type):
         database_file_name = ""
         if database_type == "production":
@@ -61,10 +62,12 @@ class Database():
 
         return os.path.join(DB_FOLDER_NAME, database_file_name)
 
+
     @staticmethod
     def get_defaults():
         defaults_file = open(os.path.join(DB_FOLDER_NAME, DEFAULT_FILE_NAME))
         return json.load(defaults_file)
+
 
     @staticmethod
     def get_month_day(date_string):
@@ -195,7 +198,6 @@ class Database():
         conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
 
-        print(update_string)
         cur.execute(update_string, update_arguments)
 
         update_count = cur.rowcount
@@ -224,3 +226,42 @@ class Database():
         conn.close()
 
         return seasons
+
+
+    def update_season(self, season, start=None, peak=None):
+        if start is None and peak is None:
+            raise ValueError("Database update_season must be passed some value to update")
+
+        update_string = "UPDATE seasons SET "
+        update_arguments = []
+
+        if start is not None:
+            update_string += consts.START_MONTH + " = ?, "
+            update_string += consts.START_DAY + " = ?, "
+            update_arguments.extend(self.get_month_day(start))
+
+        if peak is not None:
+            update_string += consts.PEAK_MONTH + " = ?, "
+            update_string += consts.PEAK_DAY + " = ?, "
+            update_arguments.extend(self.get_month_day(peak))
+
+        # Remove final ", "
+        update_string = update_string[0:-2]
+
+        update_string += " WHERE season = ?"
+        update_arguments.append(season)
+
+        conn = sqlite3.connect(self.DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute(update_string, update_arguments)
+
+        update_count = cur.rowcount
+        conn.commit()
+        conn.close()
+
+        if update_count == 0:
+            return False
+
+        return True
+

@@ -140,6 +140,34 @@ def put_override():
     return jsonify({"message": "Overwrote current program"})
 
 
+@app.route('/seasons/update/summer', methods = ['PUT'])
+def put_update_summer():
+    return update_season(consts.SUMMER, request.args)
+
+
+@app.route('/seasons/update/winter', methods = ['PUT'])
+def put_update_winter():
+    return update_season(consts.WINTER, request.args)
+
+
+def update_season(season, args):
+
+    start = args.get(consts.START)
+    peak = args.get(consts.PEAK)
+
+    # TODO: Check for correct formatting here
+
+    if start is None and peak is None:
+        return jsonify({"message": "Nothing provided to update the season"}), 400
+
+    if not database.update_season(season, start, peak):
+        return jsonify({"message": "Failed to update season"}), 500
+
+    with scheduler:
+        scheduler.update_next_event()
+    return jsonify({"message": "Sucessfully updated season"})
+
+
 @app.route('/program/delete', methods = ['DELETE'])
 def delete_program():
     program_id = request.args.get(consts.ID)
