@@ -70,7 +70,7 @@ class Database():
         return date_string.split('-')
 
 
-    def get_next_program(self):
+    def get_next_program(self, now=datetime.now()):
         '''
         Returns the next program as StartEvent by querying the database
         Currently returns the event with the next start time (could change to reschedule the current event)
@@ -79,8 +79,6 @@ class Database():
         next_program = None
         next_program_timedelta = None
         next_program_start = None
-
-        now = datetime.now()
 
         for program in programs:
             program_start_time = datetime.strptime(program[consts.START], "%H:%M:%S")
@@ -100,15 +98,99 @@ class Database():
         return next_program, next_program_start
 
 
-    def get_next_event(self):
+    def get_next_event(self, now=datetime.now()):
         # TODO: Interpolate between summer and winter duration
-        next_program, program_start = self.get_next_program()
+        next_program, program_start = self.get_next_program(now)
         if next_program is None:
             return None
 
-        duration = datetime.strptime(next_program[consts.SUMMER_DURATION], "%H:%M:%S")
-        duration_delta = timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
-        return scheduler.Scheduler.StartEvent(program_start, duration_delta, int(next_program[consts.SPEED]))
+        duration = self.get_interpolated_duration(program_start.date(), next_program[consts.SUMMER_DURATION], next_program[consts.WINTER_DURATION])
+
+        return scheduler.Scheduler.StartEvent(program_start, duration, int(next_program[consts.SPEED]))
+
+
+    def get_interpolated_duration(self, start_date, summer_duration, winter_duration):
+        '''
+        start_date - datetime of program start date
+        summer_duration/winter_duration - H:M:S formatted string for program duration
+        '''
+        duration_chart = self.get_duration_chart(start_date, summer_duration, winter_duration)
+        previous_event, next_event = self.get_previous_next_events(start_date, duration_chart)
+
+        event_range = (next_event[1] - previous_event[1]).days
+        since_previous = (start_date - previous_event[1]).days
+
+        completion_ratio = float(since_previous) / event_range
+        duration_slope = next_event[0] - previous_event[0]
+        duration = previous_event[0] + duration_slope * completion_ratio
+
+        return timedelta(seconds=duration)
+
+
+    def get_duration_chart(self, start_date, summer_duration, winter_duration):
+        '''
+        Durations passed in H:M:S string form
+        Returns list of pairs (duration in seconds, date this year)
+        '''
+        summer_duration = datetime.strptime(summer_duration, "%H:%M:%S")
+        winter_duration = datetime.strptime(winter_duration, "%H:%M:%S")
+
+        summer_seconds = timedelta(hours=summer_duration.hour, minutes=summer_duration.minute, seconds=summer_duration.second).total_seconds()
+        winter_seconds = timedelta(hours=winter_duration.hour, minutes=winter_duration.minute, seconds=winter_duration.second).total_seconds()
+        halfway_seconds = abs(summer_seconds - winter_seconds)
+
+        seasons = self.get_season_dates()
+
+        summer_start = datetime.strptime(seasons[consts.SUMMER][consts.START], "%m-%d").date().replace(year=start_date.year)
+        summer_peak = datetime.strptime(seasons[consts.SUMMER][consts.PEAK], "%m-%d").date().replace(year=start_date.year)
+        winter_start = datetime.strptime(seasons[consts.WINTER][consts.START], "%m-%d").date().replace(year=start_date.year)
+        winter_peak = datetime.strptime(seasons[consts.WINTER][consts.PEAK], "%m-%d").date().replace(year=start_date.year)
+
+        # At season start, the duration is 1/2 between the summer winter difference
+        duration_chart = [
+            (winter_seconds, winter_peak),
+            (halfway_seconds, summer_start),
+            (summer_seconds, summer_peak),
+            (halfway_seconds, winter_start)
+        ]
+        duration_chart.sort(key= lambda x: x[1])
+
+        return duration_chart
+
+
+    def get_previous_next_events(self, start_date, duration_chart):
+        next_event_index = next((i for i, event in enumerate(duration_chart) if start_date < event[1]), -1)
+
+        previous_event = (None,None)
+        next_event = (None,None)
+
+        if next_event_index == -1:
+            # Today is after the final event of the year
+
+            # Previous event is the final event of year
+            previous_event = duration_chart[len(duration_chart) - 1]
+
+            # Next event is the first event of the year
+            next_event = duration_chart[0]
+
+            # Next event is next year
+            next_event = (next_event[0], next_event[1].replace(year=next_event[1].year + 1))
+        elif next_event_index == 0:
+            # Today is before the first event of the year
+
+            # Next event is the first of the year
+            next_event = duration_chart[0]
+
+            # Previous event is the final event of the year
+            previous_event = duration_chart[len(duration_chart) - 1]
+
+            # Previous event was last year
+            previous_event[1] = (previous_event[0], previous_event[1].replace(year=previous_event[1].year - 1))
+        else:
+            next_event = duration_chart[next_event_index]
+            previous_event = duration_chart[next_event_index - 1]
+
+        return previous_event, next_event
 
 
     def add_program(self, speed, start, summer_duration, winter_duration):
