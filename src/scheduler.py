@@ -110,6 +110,8 @@ class Scheduler():
         if self._next_event is not None:
             raise ValueError("Cannot schedule event if the is already one scheduled. Please remove it first!")
 
+        print("Scheduled event - %s" % (str(event),))
+
         self._next_event = event
 
 
@@ -120,6 +122,9 @@ class Scheduler():
 
         def invoke(self, scheduler):
             scheduler._current_event = self
+
+        def __str__(self):
+            return "Event Time: %s" % (self.event_time,)
 
 
     class StartEvent(ProgramEvent):
@@ -139,6 +144,12 @@ class Scheduler():
             stop_event = Scheduler.StopEvent(datetime.now() + self.duration)
             scheduler._schedule_event(stop_event)
 
+        def __str__(self):
+            return "Start " + super().__str__() +\
+                   ", Duration: %s, "\
+                   "Speed: %s"\
+                   % (self.duration, self.speed)
+
 
     class StopEvent(ProgramEvent):
         def invoke(self, scheduler):
@@ -152,3 +163,5 @@ class Scheduler():
             if next_event is not None:
                 scheduler._schedule_event(next_event)
 
+        def __str__(self):
+            return "Stop " + super().__str__()

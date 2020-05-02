@@ -185,7 +185,7 @@ class Database():
             previous_event = duration_chart[len(duration_chart) - 1]
 
             # Previous event was last year
-            previous_event[1] = (previous_event[0], previous_event[1].replace(year=previous_event[1].year - 1))
+            previous_event = (previous_event[0], previous_event[1].replace(year=previous_event[1].year - 1))
         else:
             next_event = duration_chart[next_event_index]
             previous_event = duration_chart[next_event_index - 1]
