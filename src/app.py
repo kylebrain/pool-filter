@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from database import Database
 from scheduler import Scheduler
 import time
@@ -27,6 +28,7 @@ def create_app():
 
 
 app = create_app()
+cors = CORS(app, resources={r"/*": {"origins": "http://localhost:19006"}})
 
 
 @app.route('/')
