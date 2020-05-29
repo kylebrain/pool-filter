@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from database import Database
 from scheduler import Scheduler
+import firmware
 import time
 from datetime import datetime, timedelta
 import os
@@ -23,12 +24,13 @@ def create_app():
 
         database = Database(app.config["ENV"])
         scheduler = Scheduler(database)
+        firmware.setUp()
 
     return app
 
 
 app = create_app()
-cors = CORS(app, resources={r"/*": {"origins": "http://localhost:19006"}})
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route('/')
